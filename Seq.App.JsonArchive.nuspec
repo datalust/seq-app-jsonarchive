@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>Seq.App.JsonArchive</id>
+    <version>$version$</version>
+    <authors>Datalust and Contributors</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Record events from Seq (https://getseq.net) to a set of newline-delimited JSON streams.</description>
+    <language>en-US</language>
+    <projectUrl>https://github.com/datalust/seq-app-jsonarchive</projectUrl>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
+    <iconUrl>https://getseq.net/images/apps/seq-app-jsonarchive.png</iconUrl>
+    <tags>seq-app</tags>
+  </metadata>
+  <files>
+    <file src="target\release\jsonarchive.exe" target="" />
+    <file src="jsonarchive.exe.d.json" target="" />
+  </files>
+</package>
