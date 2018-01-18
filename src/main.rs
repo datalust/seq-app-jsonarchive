@@ -45,8 +45,8 @@ impl<'a> FatalErrorEvent<'a> {
 fn open_file(dir: &Path, fn_template: &str) -> Result<(File, u64), Error> {
     let timestamp = format!("{:01$x}", Utc::now().timestamp(), 16);
     let full_file_name = fn_template.replace("*", &timestamp);
-    let current_file_path = dir.to_path_buf()
-        .with_file_name(full_file_name);
+    let mut current_file_path = dir.to_path_buf();
+    current_file_path.push(full_file_name);
 
     let file = OpenOptions::new()
         .read(true)
@@ -73,10 +73,16 @@ fn run() -> Result<(), Error> {
     let fn_template = file_set_filename.to_string_lossy();
     ensure!(fn_template.contains("*"), "the filename pattern must include the `*` wildcard");
 
-    let chunk_size = env::var("SEQ_APP_SETTING_CHUNKSIZE")
-        .unwrap_or("104857600".to_string())
-        .parse::<u64>()
-        .map_err(|e| e.context("the `SEQ_APP_SETTING_CHUNKSIZE` environment variable could not be parsed as an integer"))?;
+    let chunk_size_var = env::var("SEQ_APP_SETTING_CHUNKSIZE")
+        .unwrap_or(String::new());
+
+    let chunk_size = if chunk_size_var.len() > 0 {
+        chunk_size_var
+            .parse::<u64>()
+            .map_err(|e| e.context("the `SEQ_APP_SETTING_CHUNKSIZE` environment variable could not be parsed as an integer"))?
+    } else {
+        104857600
+    };
     
     fs::create_dir_all(dir)?;
 
