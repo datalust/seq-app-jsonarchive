@@ -75,8 +75,8 @@ fn run() -> Result<(), Error> {
 
     let chunk_size : u64 = env::var("SEQ_APP_SETTING_CHUNKSIZE")
         .unwrap_or("104857600".to_string())
-        .parse()
-        .map_err(|_| failure::err_msg("the `SEQ_APP_SETTING_CHUNKSIZE` environment variable could not be parsed as an integer"))?;
+        .parse::<u64>()
+        .map_err(|e| e.context("the `SEQ_APP_SETTING_CHUNKSIZE` environment variable could not be parsed as an integer"))?;
     
     fs::create_dir_all(dir)?;
 
