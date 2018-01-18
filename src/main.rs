@@ -8,11 +8,10 @@ extern crate failure;
 #[macro_use]
 extern crate serde_derive;
 
-use std::result::Result;
 use failure::{Error,Fail};
 use std::env;
 use chrono::{DateTime, Utc};
-use std::io::{self, Write};
+use std::io;
 use std::io::prelude::*;
 use std::fs::{self, OpenOptions, File};
 use std::path::Path;
@@ -33,7 +32,7 @@ struct FatalErrorEvent<'a> {
 }
 
 impl<'a> FatalErrorEvent<'a> {
-    pub fn new<'b>(failure: &'b str) -> FatalErrorEvent<'b> {
+    pub fn new(failure: &'a str) -> FatalErrorEvent<'a> {
         FatalErrorEvent {
             timestamp: Utc::now(),
             message_template: "Unable to create JSON archive: {Failure}",
@@ -71,7 +70,7 @@ fn run() -> Result<(), Error> {
     let file_set_filename = file_set_path.file_name()
         .ok_or(failure::err_msg("the file set must specify a filename pattern"))?;
 
-    let fn_template = file_set_filename.to_os_string().into_string().unwrap();
+    let fn_template = file_set_filename.to_string_lossy();
     ensure!(fn_template.contains("*"), "the filename pattern must include the `*` wildcard");
 
     let chunk_size : u64 = env::var("SEQ_APP_SETTING_CHUNKSIZE")
@@ -87,7 +86,7 @@ fn run() -> Result<(), Error> {
     const NEWLINE_LEN : u64 = 1;
 
     for input in stdin.lock().lines() {
-        let line = input.unwrap();
+        let line = input?;
 
         if (current_len + NEWLINE_LEN + line.len() as u64) > chunk_size {
             let (f, c) = open_file(&dir, &fn_template)?;
@@ -108,7 +107,7 @@ fn main() {
         Err(err) => {
             let err_str = err.to_string();
             let evt = FatalErrorEvent::new(&err_str);
-            let json = serde_json::to_string(&evt).unwrap();
+            let json = serde_json::to_string(&evt).expect("infallible json");
             eprintln!("{}", json);
             1
         }
