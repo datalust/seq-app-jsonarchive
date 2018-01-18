@@ -43,12 +43,6 @@ impl<'a> FatalErrorEvent<'a> {
     }
 }
 
-fn sniff_newline_len() -> Result<u64, Error> {
-    let mut newline = Vec::new();
-    writeln!(&mut newline, "")?;
-    Ok(newline.len() as u64)
-}
-
 fn open_file(dir: &Path, fn_template: &str) -> Result<(File, u64), Error> {
     let timestamp = format!("{:01$x}", Utc::now().timestamp(), 16);
     let full_file_name = fn_template.replace("*", &timestamp);
@@ -90,19 +84,19 @@ fn run() -> Result<(), Error> {
     let stdin = io::stdin();
 
     let (mut file, mut current_len) = open_file(&dir, &fn_template)?;
-    let newline_len = sniff_newline_len()?;
+    const NEWLINE_LEN : u64 = 1;
 
     for input in stdin.lock().lines() {
         let line = input.unwrap();
 
-        if (current_len + newline_len + line.len() as u64) > chunk_size {
+        if (current_len + NEWLINE_LEN + line.len() as u64) > chunk_size {
             let (f, c) = open_file(&dir, &fn_template)?;
             file = f;
             current_len = c;
         }
 
         writeln!(file, "{}", line)?;
-        current_len += newline_len + line.len() as u64;
+        current_len += NEWLINE_LEN + line.len() as u64;
     }
 
     Ok(())
