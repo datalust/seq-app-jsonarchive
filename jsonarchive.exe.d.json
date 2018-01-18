@@ -14,7 +14,7 @@
       "displayName": "Chunk size",
       "helpText": "The maximum size, in bytes, for each file in the set. The default is 100 MB.",
       "isOptional": true,
-      "inputType": "number" 
+      "inputType": "integer" 
     }
   }
 }
