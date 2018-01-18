@@ -10,7 +10,7 @@ install:
   - rustc -vV
   - cargo -vV
 
-build:
+build_script:
   - ps: ./Build.ps1 -version 1.0.
 
 artifacts:
