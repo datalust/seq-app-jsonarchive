@@ -20,6 +20,8 @@ if (Test-Path .\publish) {
 
 mkdir .\publish
 
+$env:RUSTFLAGS  ='-C target-feature=+crt-static'
+
 cargo build --release
 if ($LASTEXITCODE) { exit 1 }
 
