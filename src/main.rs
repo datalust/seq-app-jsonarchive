@@ -73,7 +73,7 @@ fn run() -> Result<(), Error> {
     let fn_template = file_set_filename.to_string_lossy();
     ensure!(fn_template.contains("*"), "the filename pattern must include the `*` wildcard");
 
-    let chunk_size : u64 = env::var("SEQ_APP_SETTING_CHUNKSIZE")
+    let chunk_size = env::var("SEQ_APP_SETTING_CHUNKSIZE")
         .unwrap_or("104857600".to_string())
         .parse::<u64>()
         .map_err(|e| e.context("the `SEQ_APP_SETTING_CHUNKSIZE` environment variable could not be parsed as an integer"))?;
