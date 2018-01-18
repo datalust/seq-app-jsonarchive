@@ -20,7 +20,7 @@ if (Test-Path .\publish) {
 
 mkdir .\publish
 
-cargo build --release
+cargo build --release 2>&1
 if ($LASTEXITCODE) { exit 1 }
 
 & .\tool\nuget.exe pack .\Seq.App.JsonArchive.nuspec -version $version -outputdirectory .\publish
