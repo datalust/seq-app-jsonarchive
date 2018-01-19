@@ -1,0 +1,20 @@
+{
+  "$schema": "https://getseq.net/schema/app-definition/v1",
+  "name": "JSON Archive",
+  "description": "Record events to a set of newline-delimited JSON streams. The resulting files can be manipulated or imported back into Seq using `clef-tool` or `Serilog.Formatting.Compact.Reader` (C#).",
+  "allowReprocessing": false,
+  "executable": "jsonarchive.exe", 
+  "arguments":  null, 
+  "settings": {
+    "fileSet": {
+      "displayName": "File set",
+      "helpText": "The full path and filename pattern to write, for example `C:\\Archive\\events-*.json`. The app will replace the wildcard `*` with a timestamp denoting the creation time of each file."
+    },
+    "chunkSize": {
+      "displayName": "Chunk size",
+      "helpText": "The maximum size, in bytes, for each file in the set. The default is 100 MB.",
+      "isOptional": true,
+      "inputType": "integer" 
+    }
+  }
+}

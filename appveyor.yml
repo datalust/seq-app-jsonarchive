@@ -1,0 +1,33 @@
+version: '{build}'
+skip_tags: true
+image: Visual Studio 2017
+
+# Courtesty of https://github.com/starkat99/appveyor-rust/
+install:
+  - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
+  - rustup-init -yv --default-toolchain stable --default-host x86_64-pc-windows-msvc
+  - set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+  - rustc -vV
+  - cargo -vV
+
+build_script:
+  - ps: ./Build.ps1 -version 1.0.
+
+artifacts:
+  - path: publish/Seq.App.*.nupkg
+
+deploy:
+- provider: NuGet
+  api_key:
+    secure: pMZKBuv8baeQH5GJRi7gUeclYpXpHL7WWYhGlDUGXb11YS770Y6zBfUbznopov3P
+  skip_symbols: true
+  on:
+    branch: /^(master|dev)$/
+- provider: GitHub
+  auth_token:
+    secure: hX+cZmW+9BCXy7vyH8myWsYdtQHyzzil9K5yvjJv7dK9XmyrGYYDj/DPzMqsXSjo
+  artifact: /Seq.App.*\.nupkg/
+  tag: v$(appveyor_build_version)
+  on:
+    branch: master
+    
