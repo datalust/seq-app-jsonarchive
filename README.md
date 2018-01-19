@@ -6,4 +6,9 @@ Record events from [Seq](https://getseq.net) to a set of newline-delimited JSON 
 
 Instructions for installation can be found in the [Seq documentation](https://docs.getseq.net/docs/installing-seq-apps).
 
-The package id of this package is _Seq.App.JsonArchive_.
+**The package id of this package is _Seq.App.JsonArchive_.**
+
+## Reading archived events
+
+Along with regular JSON parsers, the JSON-formatted events written into the archive files can be transformed into [Serilog](https://serilog.net) events using [_Serilog.Formatting.Compact.Reader_](https://github.com/serilog/serilog-formatting-compact-reader), and imported to Seq or interactively queried using [`clef-tool`](https://github.com/datalust/clef-tool).
+
