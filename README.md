@@ -1,4 +1,4 @@
-# Seq JSON Archive App [![Build status](https://ci.appveyor.com/api/projects/status/ms5rth9qw7tbf5p3?svg=true)](https://ci.appveyor.com/project/datalust/seq-app-jsonarchive) [![NuGet Pre Release](https://img.shields.io/nuget/vpre/Seq.App.JsonArchive.svg)](https://nuget.org/packages/Seq.App.JsonArchive)
+# Seq JSON Archive App [![Build status](https://ci.appveyor.com/api/projects/status/3aq07d7prowagwgu?svg=true)](https://ci.appveyor.com/project/datalust/seq-app-jsonarchive) [![NuGet Pre Release](https://img.shields.io/nuget/vpre/Seq.App.JsonArchive.svg)](https://nuget.org/packages/Seq.App.JsonArchive)
 
 Record events from [Seq](https://getseq.net) to a set of newline-delimited JSON streams.
 
