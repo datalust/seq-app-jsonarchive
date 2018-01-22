@@ -12,7 +12,7 @@ use std::result::Result;
 use failure::{Error,Fail,err_msg};
 use std::env;
 use chrono::{DateTime, Utc};
-use std::io::{self, Write};
+use std::io;
 use std::io::prelude::*;
 use std::fs::{self, OpenOptions, File};
 use std::path::{PathBuf, Path};
@@ -33,7 +33,7 @@ struct FatalErrorEvent<'a> {
 }
 
 impl<'a> FatalErrorEvent<'a> {
-    pub fn new<'b>(failure: &'b str) -> FatalErrorEvent<'b> {
+    pub fn new(failure: &'a str) -> FatalErrorEvent<'a> {
         FatalErrorEvent {
             timestamp: Utc::now(),
             message_template: "Unable to create JSON archive: {Failure}",
@@ -50,7 +50,7 @@ fn parse_file_set<'a>(file_set: &'a str) -> Result<(&'a Path, String), Error> {
         .ok_or(err_msg("the file set must specify a filename"))?;
 
     let file_set_filename = file_set_path.file_name()
-        .ok_or(err_msg("the 00000000577f6df300000000577f6df3file set must specify a filename pattern"))?;
+        .ok_or(err_msg("the file set must specify a filename pattern"))?;
 
     let fn_template = file_set_filename.to_os_string().into_string()
         .map_err(|_| err_msg("filename character set conversion failed"))?;
@@ -87,10 +87,16 @@ fn run() -> Result<(), Error> {
 
     let (dir, fn_template) = parse_file_set(&file_set)?;
 
-    let chunk_size : u64 = env::var("SEQ_APP_SETTING_CHUNKSIZE")
-        .unwrap_or("104857600".to_string())
-        .parse()
-        .map_err(|_| failure::err_msg("the `SEQ_APP_SETTING_CHUNKSIZE` environment variable could not be parsed as an integer"))?;
+    let chunk_size_var = env::var("SEQ_APP_SETTING_CHUNKSIZE")
+        .unwrap_or(String::new());
+
+    let chunk_size = if chunk_size_var.len() > 0 {
+        chunk_size_var
+            .parse::<u64>()
+            .map_err(|e| e.context("the `SEQ_APP_SETTING_CHUNKSIZE` environment variable could not be parsed as an integer"))?
+    } else {
+        104857600
+    };
     
     fs::create_dir_all(dir)?;
 
@@ -100,7 +106,7 @@ fn run() -> Result<(), Error> {
     const NEWLINE_LEN : u64 = 1;
 
     for input in stdin.lock().lines() {
-        let line = input.unwrap();
+        let line = input?;
 
         if (current_len + NEWLINE_LEN + line.len() as u64) > chunk_size {
             let (f, c) = open_file(&dir, &fn_template)?;
@@ -121,7 +127,7 @@ fn main() {
         Err(err) => {
             let err_str = err.to_string();
             let evt = FatalErrorEvent::new(&err_str);
-            let json = serde_json::to_string(&evt).unwrap();
+            let json = serde_json::to_string(&evt).expect("infallible json");
             eprintln!("{}", json);
             1
         }

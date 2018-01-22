@@ -9,7 +9,7 @@
     <language>en-US</language>
     <projectUrl>https://github.com/datalust/seq-app-jsonarchive</projectUrl>
     <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
-    <iconUrl>https://getseq.net/images/apps/seq-app-jsonarchive.png</iconUrl>
+    <iconUrl>https://raw.githubusercontent.com/datalust/seq-app-jsonarchive/dev/asset/seq-app-jsonarchive.png</iconUrl>
     <tags>seq-app</tags>
   </metadata>
   <files>
