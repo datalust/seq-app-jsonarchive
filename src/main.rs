@@ -8,13 +8,14 @@ extern crate failure;
 #[macro_use]
 extern crate serde_derive;
 
-use failure::{Error,Fail};
+use std::result::Result;
+use failure::{Error,Fail,err_msg};
 use std::env;
 use chrono::{DateTime, Utc};
 use std::io;
 use std::io::prelude::*;
 use std::fs::{self, OpenOptions, File};
-use std::path::Path;
+use std::path::{PathBuf, Path};
 
 #[derive(Serialize)]
 struct FatalErrorEvent<'a> {
@@ -42,11 +43,33 @@ impl<'a> FatalErrorEvent<'a> {
     }
 }
 
-fn open_file(dir: &Path, fn_template: &str) -> Result<(File, u64), Error> {
-    let timestamp = format!("{:01$x}", Utc::now().timestamp(), 16);
+fn parse_file_set<'a>(file_set: &'a str) -> Result<(&'a Path, String), Error> {
+    let file_set_path = Path::new(file_set);
+
+    let dir = file_set_path.parent()
+        .ok_or(err_msg("the file set must specify a filename"))?;
+
+    let file_set_filename = file_set_path.file_name()
+        .ok_or(err_msg("the file set must specify a filename pattern"))?;
+
+    let fn_template = file_set_filename.to_os_string().into_string()
+        .map_err(|_| err_msg("filename character set conversion failed"))?;
+
+    ensure!(fn_template.contains("*"), "the filename pattern must include the `*` wildcard");
+
+    Ok((dir, fn_template))
+}
+
+fn make_file_path(dir: &Path, fn_template: &str, timestamp: DateTime<Utc>) -> PathBuf {
+    let timestamp = format!("{:01$x}", timestamp.timestamp(), 16);
     let full_file_name = fn_template.replace("*", &timestamp);
-    let mut current_file_path = dir.to_path_buf();
-    current_file_path.push(full_file_name);
+    let mut buf = dir.to_path_buf();
+    buf.push(full_file_name);
+    buf
+}
+
+fn open_file(dir: &Path, fn_template: &str) -> Result<(File, u64), Error> {
+    let current_file_path = make_file_path(dir, fn_template, Utc::now());
 
     let file = OpenOptions::new()
         .read(true)
@@ -62,16 +85,7 @@ fn run() -> Result<(), Error> {
     let file_set = env::var("SEQ_APP_SETTING_FILESET")
         .map_err(|e| e.context("the `SEQ_APP_SETTING_FILESET` environment variable is not set"))?;
 
-    let file_set_path = Path::new(&file_set);
-
-    let dir = file_set_path.parent()
-        .ok_or(failure::err_msg("the file set must specify a filename"))?;
-
-    let file_set_filename = file_set_path.file_name()
-        .ok_or(failure::err_msg("the file set must specify a filename pattern"))?;
-
-    let fn_template = file_set_filename.to_string_lossy();
-    ensure!(fn_template.contains("*"), "the filename pattern must include the `*` wildcard");
+    let (dir, fn_template) = parse_file_set(&file_set)?;
 
     let chunk_size_var = env::var("SEQ_APP_SETTING_CHUNKSIZE")
         .unwrap_or(String::new());
@@ -118,4 +132,27 @@ fn main() {
             1
         }
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use chrono::NaiveDate;
+    
+    #[test]
+    fn file_set_is_split() {
+        let file_set = "/path/to/log-*.clef";
+        let (dir, fn_template) = parse_file_set(file_set).unwrap();
+        assert_eq!("/path/to", dir.to_str().unwrap());
+        assert_eq!("log-*.clef", &fn_template);
+    }
+
+    #[test]
+    fn timestamped_file_path_constructed() {
+        let (dir, fn_template) = (Path::new("/path/to"), "log-*.clef");
+        let timestamp = DateTime::<Utc>::from_utc(NaiveDate::from_ymd(2016, 7, 8).and_hms(9, 10, 11), Utc);
+        let path = make_file_path(dir, fn_template, timestamp);
+        assert_eq!("/path/to/log-00000000577f6df3.clef", path.to_str().unwrap());
+    }
+
 }
