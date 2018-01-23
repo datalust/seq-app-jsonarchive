@@ -43,49 +43,62 @@ impl<'a> FatalErrorEvent<'a> {
     }
 }
 
-fn parse_file_set<'a>(file_set: &'a str) -> Result<(&'a Path, String), Error> {
-    let file_set_path = Path::new(file_set);
-
-    let dir = file_set_path.parent()
-        .ok_or(err_msg("the file set must specify a filename"))?;
-
-    let file_set_filename = file_set_path.file_name()
-        .ok_or(err_msg("the file set must specify a filename pattern"))?;
-
-    let fn_template = file_set_filename.to_os_string().into_string()
-        .map_err(|_| err_msg("filename character set conversion failed"))?;
-
-    ensure!(fn_template.contains("*"), "the filename pattern must include the `*` wildcard");
-
-    Ok((dir, fn_template))
+struct FileSet<'a> {
+    dir: &'a Path,
+    file_name_template: String
 }
 
-fn make_file_path(dir: &Path, fn_template: &str, timestamp: DateTime<Utc>) -> PathBuf {
-    let timestamp = format!("{:01$x}", timestamp.timestamp(), 16);
-    let full_file_name = fn_template.replace("*", &timestamp);
-    let mut buf = dir.to_path_buf();
-    buf.push(full_file_name);
-    buf
-}
+impl<'a> FileSet<'a> {
+    fn new(file_set: &'a str) -> Result<FileSet<'a>, Error> {
+        let file_set_path = Path::new(file_set);
 
-fn open_file(dir: &Path, fn_template: &str) -> Result<(File, u64), Error> {
-    let current_file_path = make_file_path(dir, fn_template, Utc::now());
+        let dir = file_set_path.parent()
+            .ok_or(err_msg("the file set must specify a filename"))?;
 
-    let file = OpenOptions::new()
-        .read(true)
-        .append(true)
-        .create(true)
-        .open(current_file_path.as_path())?;
+        let file_set_filename = file_set_path.file_name()
+            .ok_or(err_msg("the file set must specify a filename pattern"))?;
 
-    let current_len = file.metadata()?.len();
-    Ok((file, current_len))
+        let file_name_template = file_set_filename.to_os_string().into_string()
+            .map_err(|_| err_msg("filename character set conversion failed"))?;
+
+        ensure!(file_name_template.contains("*"), "the filename pattern must include the `*` wildcard");
+
+        Ok(FileSet{dir, file_name_template})
+    }
+
+    fn make_file_path(&self, timestamp: DateTime<Utc>) -> PathBuf {
+        let timestamp = format!("{:01$x}", timestamp.timestamp(), 16);
+        let full_file_name = self.file_name_template.replace("*", &timestamp);
+        let mut buf = self.dir.to_path_buf();
+        buf.push(full_file_name);
+        buf
+    }
+    
+    fn ensure_dir_exists(&self) -> Result<(), Error> {
+        fs::create_dir_all(self.dir)?;
+        Ok(())
+    }
+
+    fn open_next_file(&self) -> Result<(File, u64), Error> {
+        self.ensure_dir_exists()?;
+
+        let current_file_path = self.make_file_path(Utc::now());
+        let file = OpenOptions::new()
+            .read(true)
+            .append(true)
+            .create(true)
+            .open(current_file_path.as_path())?;
+
+        let current_len = file.metadata()?.len();
+        Ok((file, current_len))
+    }
 }
 
 fn run() -> Result<(), Error> {
-    let file_set = env::var("SEQ_APP_SETTING_FILESET")
+    let file_set_var = env::var("SEQ_APP_SETTING_FILESET")
         .map_err(|e| e.context("the `SEQ_APP_SETTING_FILESET` environment variable is not set"))?;
 
-    let (dir, fn_template) = parse_file_set(&file_set)?;
+    let file_set = FileSet::new(&file_set_var)?;
 
     let chunk_size_var = env::var("SEQ_APP_SETTING_CHUNKSIZE")
         .unwrap_or(String::new());
@@ -98,18 +111,16 @@ fn run() -> Result<(), Error> {
         104857600
     };
     
-    fs::create_dir_all(dir)?;
-
     let stdin = io::stdin();
 
-    let (mut file, mut current_len) = open_file(&dir, &fn_template)?;
+    let (mut file, mut current_len) = file_set.open_next_file()?;
     const NEWLINE_LEN : u64 = 1;
 
     for input in stdin.lock().lines() {
         let line = input?;
 
         if (current_len + NEWLINE_LEN + line.len() as u64) > chunk_size {
-            let (f, c) = open_file(&dir, &fn_template)?;
+            let (f, c) = file_set.open_next_file()?;
             file = f;
             current_len = c;
         }
@@ -138,21 +149,44 @@ fn main() {
 mod tests {
     use super::*;
     use chrono::NaiveDate;
+
+    impl<'a> FileSet<'a> {
+        fn dir_name(&self) -> &str {
+            self.dir.to_str().unwrap()
+        }
+
+        fn file_name_template(&self) -> &str {
+            &self.file_name_template
+        }
+    }
+
+    fn join_path(parts: &[&'static str]) -> String {
+        let mut buf = PathBuf::new();
+        for p in parts {
+            buf.push(p);
+        }
+        buf.to_string_lossy().to_string()
+    }
     
     #[test]
     fn file_set_is_split() {
-        let file_set = "/path/to/log-*.clef";
-        let (dir, fn_template) = parse_file_set(file_set).unwrap();
-        assert_eq!("/path/to", dir.to_str().unwrap());
-        assert_eq!("log-*.clef", &fn_template);
+        let p = join_path(&["path", "to", "log-*.clef"]);
+        let file_set = FileSet::new(&p).unwrap();
+
+        let q = join_path(&["path", "to"]);
+        assert_eq!(&q, file_set.dir_name());
+        assert_eq!("log-*.clef", file_set.file_name_template());
     }
 
     #[test]
     fn timestamped_file_path_constructed() {
-        let (dir, fn_template) = (Path::new("/path/to"), "log-*.clef");
+        let p = join_path(&["path", "to", "log-*.clef"]);
+        let file_set = FileSet::new(&p).unwrap();
         let timestamp = DateTime::<Utc>::from_utc(NaiveDate::from_ymd(2016, 7, 8).and_hms(9, 10, 11), Utc);
-        let path = make_file_path(dir, fn_template, timestamp);
-        assert_eq!("/path/to/log-00000000577f6df3.clef", path.to_str().unwrap());
+        let path = file_set.make_file_path(timestamp);
+
+        let q = join_path(&["path", "to", "log-00000000577f6df3.clef"]);
+        assert_eq!(&q, path.to_str().unwrap());
     }
 
 }
