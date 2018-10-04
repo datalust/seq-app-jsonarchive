@@ -3,19 +3,17 @@ extern crate serde;
 extern crate serde_json;
 
 #[macro_use]
-extern crate failure;
-
-#[macro_use]
 extern crate serde_derive;
 
 use std::result::Result;
-use failure::{Error,Fail,err_msg};
 use std::env;
 use chrono::{DateTime, Utc};
 use std::io;
 use std::io::prelude::*;
 use std::fs::{self, OpenOptions, File};
 use std::path::{PathBuf, Path};
+use std::error::Error;
+use std::fmt;
 
 #[derive(Serialize)]
 struct FatalErrorEvent<'a> {
@@ -37,9 +35,29 @@ impl<'a> FatalErrorEvent<'a> {
         FatalErrorEvent {
             timestamp: Utc::now(),
             message_template: "Unable to create JSON archive: {Failure}",
-            failure: failure,
+            failure,
             level: "Fatal"
         }
+    }
+}
+
+struct AppError(&'static str);
+
+impl Error for AppError {
+    fn description(&self) -> &str {
+        &self.0
+    }
+}
+
+impl fmt::Debug for AppError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl fmt::Display for AppError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        self.0.fmt(f)
     }
 }
 
@@ -49,19 +67,21 @@ struct FileSet<'a> {
 }
 
 impl<'a> FileSet<'a> {
-    fn new(file_set: &'a str) -> Result<FileSet<'a>, Error> {
+    fn new(file_set: &'a str) -> Result<FileSet<'a>, Box<Error>> {
         let file_set_path = Path::new(file_set);
 
         let dir = file_set_path.parent()
-            .ok_or(err_msg("the file set must specify a filename"))?;
+            .ok_or(AppError("the file set must specify a filename"))?;
 
         let file_set_filename = file_set_path.file_name()
-            .ok_or(err_msg("the file set must specify a filename pattern"))?;
+            .ok_or(AppError("the file set must specify a filename pattern"))?;
 
         let file_name_template = file_set_filename.to_os_string().into_string()
-            .map_err(|_| err_msg("filename character set conversion failed"))?;
+            .map_err(|_| AppError("filename character set conversion failed"))?;
 
-        ensure!(file_name_template.contains("*"), "the filename pattern must include the `*` wildcard");
+        if !file_name_template.contains("*") {
+            Err(AppError("the filename pattern must include the `*` wildcard"))?
+        };
 
         Ok(FileSet{dir, file_name_template})
     }
@@ -74,12 +94,12 @@ impl<'a> FileSet<'a> {
         buf
     }
     
-    fn ensure_dir_exists(&self) -> Result<(), Error> {
+    fn ensure_dir_exists(&self) -> Result<(), Box<Error>> {
         fs::create_dir_all(self.dir)?;
         Ok(())
     }
 
-    fn open_next_file(&self) -> Result<(File, u64), Error> {
+    fn open_next_file(&self) -> Result<(File, u64), Box<Error>> {
         self.ensure_dir_exists()?;
 
         let current_file_path = self.make_file_path(Utc::now());
@@ -94,9 +114,9 @@ impl<'a> FileSet<'a> {
     }
 }
 
-fn run() -> Result<(), Error> {
+fn run() -> Result<(), Box<Error>> {
     let file_set_var = env::var("SEQ_APP_SETTING_FILESET")
-        .map_err(|e| e.context("the `SEQ_APP_SETTING_FILESET` environment variable is not set"))?;
+        .map_err(|_| AppError("the `SEQ_APP_SETTING_FILESET` environment variable is not set"))?;
 
     let file_set = FileSet::new(&file_set_var)?;
 
@@ -106,7 +126,7 @@ fn run() -> Result<(), Error> {
     let chunk_size = if chunk_size_var.len() > 0 {
         chunk_size_var
             .parse::<u64>()
-            .map_err(|e| e.context("the `SEQ_APP_SETTING_CHUNKSIZE` environment variable could not be parsed as an integer"))?
+            .map_err(|_| AppError("the `SEQ_APP_SETTING_CHUNKSIZE` environment variable could not be parsed as an integer"))?
     } else {
         104857600
     };
@@ -188,5 +208,4 @@ mod tests {
         let q = join_path(&["path", "to", "log-00000000577f6df3.clef"]);
         assert_eq!(&q, path.to_str().unwrap());
     }
-
 }

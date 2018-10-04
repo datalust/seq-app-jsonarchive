@@ -13,7 +13,9 @@
     <tags>seq-app</tags>
   </metadata>
   <files>
-    <file src="target\release\jsonarchive.exe" target="" />
     <file src="jsonarchive.exe.d.json" target="" />
+    <file src="target\x86_64-pc-windows-msvc\release\jsonarchive.exe" target="" />
+    <file src="target\x86_64-pc-windows-msvc\release\jsonarchive.exe" target="win-x64" />
+    <file src="target\x86_64-unknown-linux-musl\release\jsonarchive" target="linux-x64" />
   </files>
 </package>

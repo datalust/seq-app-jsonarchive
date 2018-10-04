@@ -1,10 +1,17 @@
 {
-  "$schema": "https://getseq.net/schema/app-definition/v1",
+  "$schema": "https://getseq.net/schema/app-definition/v2",
   "name": "JSON Archive",
   "description": "Record events to a set of newline-delimited JSON streams. The resulting files can be manipulated or imported back into Seq using `clef-tool` or `Serilog.Formatting.Compact.Reader` (C#).",
   "allowReprocessing": false,
-  "executable": "jsonarchive.exe", 
-  "arguments":  null, 
+  "executable": "jsonarchive.exe",
+  "platform": {
+    "win-x64": {
+      "executable": "win-x64\\jsonarchive.exe"
+    },
+    "linux-x64": {
+      "executable": "linux-x64/jsonarchive"
+    }
+  },
   "settings": {
     "fileSet": {
       "displayName": "File set",

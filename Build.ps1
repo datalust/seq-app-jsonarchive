@@ -20,9 +20,10 @@ if (Test-Path .\publish) {
 
 mkdir .\publish
 
-$env:RUSTFLAGS  ='-C target-feature=+crt-static'
+cargo build --release --target=x86_64-unknown-linux-musl
+if ($LASTEXITCODE) { exit 1 }
 
-cargo build --release
+cargo build --release --target=x86_64-pc-windows-msvc
 if ($LASTEXITCODE) { exit 1 }
 
 & .\tool\nuget.exe pack .\Seq.App.JsonArchive.nuspec -version $version -outputdirectory .\publish
