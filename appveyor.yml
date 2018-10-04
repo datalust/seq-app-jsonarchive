@@ -2,11 +2,12 @@ version: '{build}'
 skip_tags: true
 image: Visual Studio 2017
 
-# Courtesty of https://github.com/starkat99/appveyor-rust/
+# Courtesy of https://github.com/starkat99/appveyor-rust/
 install:
   - appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
-  - rustup-init -yv --default-toolchain stable --default-host x86_64-pc-windows-msvc
+  - rustup-init -yv --default-toolchain beta --default-host x86_64-pc-windows-msvc
   - set PATH=%PATH%;%USERPROFILE%\.cargo\bin
+  - rustup target add x86_64-unknown-linux-musl
   - rustc -vV
   - cargo -vV
 
