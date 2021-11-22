@@ -17,5 +17,6 @@
     <file src="target\x86_64-pc-windows-msvc\release\jsonarchive.exe" target="" />
     <file src="target\x86_64-pc-windows-msvc\release\jsonarchive.exe" target="win-x64" />
     <file src="target\x86_64-unknown-linux-musl\release\jsonarchive" target="linux-x64\jsonarchive" />
+    <file src="target\aarch64-unknown-linux-musl\release\jsonarchive" target="linux-arm64\jsonarchive" />
   </files>
 </package>
