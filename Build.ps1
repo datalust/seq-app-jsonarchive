@@ -23,6 +23,9 @@ mkdir .\publish
 cargo build --release --target=x86_64-unknown-linux-musl
 if ($LASTEXITCODE) { exit 1 }
 
+cargo build --release --target=aarch64-unknown-linux-musl
+if ($LASTEXITCODE) { exit 1 }
+
 cargo build --release --target=x86_64-pc-windows-msvc
 if ($LASTEXITCODE) { exit 1 }
 

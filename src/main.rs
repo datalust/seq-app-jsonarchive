@@ -1,7 +1,3 @@
-extern crate chrono;
-extern crate serde;
-extern crate serde_json;
-
 #[macro_use]
 extern crate serde_derive;
 
@@ -67,7 +63,7 @@ struct FileSet<'a> {
 }
 
 impl<'a> FileSet<'a> {
-    fn new(file_set: &'a str) -> Result<FileSet<'a>, Box<Error>> {
+    fn new(file_set: &'a str) -> Result<FileSet<'a>, Box<dyn Error>> {
         let file_set_path = Path::new(file_set);
 
         let dir = file_set_path.parent()
@@ -94,12 +90,12 @@ impl<'a> FileSet<'a> {
         buf
     }
     
-    fn ensure_dir_exists(&self) -> Result<(), Box<Error>> {
+    fn ensure_dir_exists(&self) -> Result<(), Box<dyn Error>> {
         fs::create_dir_all(self.dir)?;
         Ok(())
     }
 
-    fn open_next_file(&self) -> Result<(File, u64), Box<Error>> {
+    fn open_next_file(&self) -> Result<(File, u64), Box<dyn Error>> {
         self.ensure_dir_exists()?;
 
         let current_file_path = self.make_file_path(Utc::now());
@@ -114,7 +110,7 @@ impl<'a> FileSet<'a> {
     }
 }
 
-fn run() -> Result<(), Box<Error>> {
+fn run() -> Result<(), Box<dyn Error>> {
     let file_set_var = env::var("SEQ_APP_SETTING_FILESET")
         .map_err(|_| AppError("the `SEQ_APP_SETTING_FILESET` environment variable is not set"))?;
 
