@@ -1,7 +1,7 @@
 # This script originally (c) 2016 Serilog Contributors - license Apache 2.0
 $branch = @{ $true = $env:APPVEYOR_REPO_BRANCH; $false = $(git symbolic-ref --short -q HEAD) }[$env:APPVEYOR_REPO_BRANCH -ne $NULL];
 $revision = @{ $true = ""; $false = "-local" }[$env:APPVEYOR_BUILD_NUMBER -ne $NULL];
-$suffix = @{ $true = ""; $false = "$($branch.Substring(0, [math]::Min(10,$branch.Length)))$revision"}[$branch -eq "master" -and $revision -ne "local"]
+$suffix = @{ $true = ""; $false = "$($branch.Substring(0, [math]::Min(10,$branch.Length)))$revision"}[$branch -eq "main" -and $revision -ne "local"]
 
 $version = "1.0."
 if ($env:APPVEYOR_BUILD_NUMBER -ne $NULL) {
