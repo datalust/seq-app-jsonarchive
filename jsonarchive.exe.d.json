@@ -10,6 +10,9 @@
     },
     "linux-x64": {
       "executable": "linux-x64/jsonarchive"
+    },
+    "linux-arm64": {
+      "executable": "linux-arm64/jsonarchive"
     }
   },
   "settings": {
