@@ -59,8 +59,8 @@ impl fmt::Display for AppError {
 
 #[derive(Copy,Clone)]
 enum FilenameFormat {
-    Timestamp,
-    Readable
+    Timestamp,          // log-00000000577f6df3.clef
+    Readable            // log-2016-07-08T09_10_11Z.clef
 }
 
 struct FileSet<'a> {
@@ -90,7 +90,7 @@ impl<'a> FileSet<'a> {
     }
 
     fn make_file_path(&self, timestamp: DateTime<Utc>) -> PathBuf {
-        const READABLE_FORMAT: &str = "%Y-%m-%dT%H_%M_%SZ";
+        const READABLE_FORMAT: &str = "%Y-%m-%dT%H_%M_%SZ"; // 2016-07-08T09_10_11Z
 
         let timestamp = match &self.format {
             FilenameFormat::Timestamp => format!("{:01$x}", timestamp.timestamp(), 16),
