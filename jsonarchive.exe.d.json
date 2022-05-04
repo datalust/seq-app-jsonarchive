@@ -19,9 +19,15 @@
     },
     "chunkSize": {
       "displayName": "Chunk size",
-      "helpText": "The maximum size, in bytes, for each file in the set. The default is 100 MB.",
+      "helpText": "The maximum size, in bytes, for each file in the set. The default is 104857600 (100 MB).",
       "isOptional": true,
       "inputType": "integer" 
+    },
+    "readableFilenames": {
+      "inputType": "Checkbox",
+      "displayName": "Use readable filenames",
+      "helpText": "Use a human-readable datetime format (e.g. 2022-05-04T01_13_33Z) for filenames.",
+      "isOptional": true
     }
   }
 }
