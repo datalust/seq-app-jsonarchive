@@ -60,13 +60,13 @@ impl fmt::Display for AppError {
 #[derive(Copy,Clone)]
 enum FilenameFormat {
     Timestamp,          // log-00000000577f6df3.clef
-    Readable            // log-2016-07-08T09_10_11Z.clef
+    Readable,           // log-2016-07-08T09_10_11Z.clef
 }
 
 struct FileSet<'a> {
     dir: &'a Path,
     file_name_template: String,
-    format: FilenameFormat
+    format: FilenameFormat,
 }
 
 impl<'a> FileSet<'a> {
@@ -122,6 +122,7 @@ impl<'a> FileSet<'a> {
     }
 }
 
+/// Does the environment variable `name` have the value 'True' or 'true'?
 fn is_truthy(name: impl AsRef<str>) -> Result<bool, Box<dyn Error>> {
     match env::var(name.as_ref()) {
         // The evironment variable contains a truthy value
