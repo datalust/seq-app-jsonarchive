@@ -17,17 +17,17 @@
       "displayName": "File set",
       "helpText": "The full path and filename pattern to write, for example `C:\\Archive\\events-*.json`. The app will replace the wildcard `*` with a timestamp denoting the creation time of each file."
     },
+    "readableFilenames": {
+      "inputType": "Checkbox",
+      "displayName": "Use human-readable filenames",
+      "helpText": "Use a human-readable datetime format (e.g. 2022-05-04T01_13_33Z) in filenames.",
+      "isOptional": true
+    },
     "chunkSize": {
       "displayName": "Chunk size",
       "helpText": "The maximum size, in bytes, for each file in the set. The default is 104857600 (100 MB).",
       "isOptional": true,
       "inputType": "integer" 
-    },
-    "readableFilenames": {
-      "inputType": "Checkbox",
-      "displayName": "Use readable filenames",
-      "helpText": "Use a human-readable datetime format (e.g. 2022-05-04T01_13_33Z) for filenames.",
-      "isOptional": true
     }
   }
 }
