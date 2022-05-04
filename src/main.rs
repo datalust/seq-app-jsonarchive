@@ -141,7 +141,7 @@ fn run() -> Result<(), Box<dyn Error>> {
 
     let file_set = FileSet::new(
         &file_set_var,
-        if is_truthy("SEQ_APP_READABLEFILENAMES")? {
+        if is_truthy("SEQ_APP_SETTING_READABLEFILENAMES")? {
             FilenameFormat::Readable
         } else {
             FilenameFormat::Timestamp
