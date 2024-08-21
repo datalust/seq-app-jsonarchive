@@ -29,5 +29,8 @@ if ($LASTEXITCODE) { exit 1 }
 cargo build --release --target=x86_64-pc-windows-msvc
 if ($LASTEXITCODE) { exit 1 }
 
+cargo build --release --target=wasm32-wasip1
+if ($LASTEXITCODE) { exit 1 }
+
 & .\tool\nuget.exe pack .\Seq.App.JsonArchive.nuspec -version $version -outputdirectory .\publish
 exit $LASTEXITCODE
