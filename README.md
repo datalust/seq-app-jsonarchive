@@ -1,4 +1,4 @@
-# Seq JSON Archive App [![Build status](https://ci.appveyor.com/api/projects/status/3aq07d7prowagwgu?svg=true)](https://ci.appveyor.com/project/datalust/seq-app-jsonarchive) [![NuGet Pre Release](https://img.shields.io/nuget/vpre/Seq.App.JsonArchive.svg)](https://nuget.org/packages/Seq.App.JsonArchive)
+# Seq JSON Archive App [![NuGet Pre Release](https://img.shields.io/nuget/vpre/Seq.App.JsonArchive.svg)](https://nuget.org/packages/Seq.App.JsonArchive)
 
 Record events from [Seq](https://datalust.co) to a set of newline-delimited JSON files. The format is lossless, preserving all of the event's properties along with its internal Seq-generated event id and type.
 
