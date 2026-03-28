@@ -13,6 +13,10 @@
     },
     "linux-arm64": {
       "executable": "linux-arm64/jsonarchive"
+    },
+    "wasm32-wasip1": {
+      "module": "wasm32-wasip1/jsonarchive.wasm",
+      "grant": ["dir"]
     }
   },
   "settings": {
